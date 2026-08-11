@@ -248,6 +248,7 @@ public class WhoApprovedThisStack : Stack
                 ["CREDENTIAL_PROVIDER"] = "cognito-expenses",
                 ["MCP_SERVER_URL"] = mcpUrl.Url,
                 ["MODEL_ID"] = "eu.amazon.nova-pro-v1:0",
+                ["APP_URL"] = $"https://{distribution.DistributionDomainName}/",
             },
         });
 

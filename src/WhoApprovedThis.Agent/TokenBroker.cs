@@ -14,6 +14,9 @@ public class TokenBroker
         Environment.GetEnvironmentVariable("CREDENTIAL_PROVIDER") ?? "cognito-expenses";
     static readonly List<string> Scopes =
         ["expenses/read", "expenses/write", "expenses/approve"];
+    // Where the user's browser lands after granting consent (session binding)
+    static readonly string ReturnUrl =
+        Environment.GetEnvironmentVariable("APP_URL") ?? "http://localhost:4000/";
 
     readonly AmazonBedrockAgentCoreClient _client = new();
 
@@ -27,6 +30,7 @@ public class TokenBroker
                 ResourceCredentialProviderName = Provider,
                 Scopes = Scopes,
                 Oauth2Flow = Oauth2FlowType.USER_FEDERATION,
+                ResourceOauth2ReturnUrl = ReturnUrl,
             });
 
         return (response.AccessToken, response.AuthorizationUrl);
