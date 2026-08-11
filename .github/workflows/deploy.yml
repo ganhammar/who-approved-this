@@ -39,7 +39,15 @@ jobs:
           echo "$RUNNER_TEMP/zig-linux-aarch64-0.14.0" >> "$GITHUB_PATH"
           cat > "$RUNNER_TEMP/zigcc" <<'EOF'
           #!/usr/bin/env bash
-          exec zig cc -target aarch64-linux-gnu.2.34 "$@"
+          # zig links through its own lld and rejects a few flags ILC passes
+          args=()
+          for arg in "$@"; do
+            case "$arg" in
+              -pie|-Wl,-pie|-fuse-ld=*|-gz=*) ;;
+              *) args+=("$arg") ;;
+            esac
+          done
+          exec zig cc -target aarch64-linux-gnu.2.34 "${args[@]}"
           EOF
           chmod +x "$RUNNER_TEMP/zigcc"
 
