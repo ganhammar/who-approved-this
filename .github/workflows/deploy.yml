@@ -30,15 +30,18 @@ jobs:
       - name: Native AOT prerequisites
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
-      - name: Publish MCP server (linux-arm64 AOT zip for Lambda)
+      - name: Publish MCP server and agent (linux-arm64 AOT, in parallel)
         run: |
-          dotnet publish src/WhoApprovedThis.McpServer -c Release -r linux-arm64
+          dotnet publish src/WhoApprovedThis.McpServer -c Release -r linux-arm64 & mcp=$!
+          dotnet publish src/WhoApprovedThis.Agent -c Release -r linux-arm64 \
+            -o src/WhoApprovedThis.Agent/publish & agent=$!
+          status=0
+          wait $mcp || status=1
+          wait $agent || status=1
           mkdir -p artifacts/mcp-server
           cp src/WhoApprovedThis.McpServer/bin/Release/net10.0/linux-arm64/publish/WhoApprovedThis.McpServer \
             artifacts/mcp-server/bootstrap
-
-      - name: Publish agent (linux-arm64 AOT binary for the container image)
-        run: dotnet publish src/WhoApprovedThis.Agent -c Release -r linux-arm64 -o src/WhoApprovedThis.Agent/publish
+          exit $status
 
       - uses: aws-actions/configure-aws-credentials@v6
         with:
