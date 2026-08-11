@@ -47,8 +47,11 @@ const claims = () => {
 // --- Chat against the agent, same-origin via CloudFront ---
 
 // InvokeAgentRuntime requires a session id of at least 33 characters; the
-// runtime routes requests with the same id to the same microVM
-const sessionId = crypto.randomUUID() + "-" + crypto.randomUUID();
+// runtime routes requests with the same id to the same microVM. It must
+// survive reloads: the consent redirect reloads the page, and the granted
+// token is found via the session that requested it
+const sessionId = sessionStorage.sessionId ??=
+  crypto.randomUUID() + "-" + crypto.randomUUID();
 
 function append(role, text) {
   const div = document.createElement("div");
