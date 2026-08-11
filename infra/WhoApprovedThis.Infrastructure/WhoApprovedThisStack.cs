@@ -103,7 +103,11 @@ public class WhoApprovedThisStack : Stack
         // Same-origin proxy for InvokeAgentRuntime, so the browser needs no
         // CORS support from the AgentCore endpoint and no AWS SDK
         distribution.AddBehavior("/runtimes/*",
-            new HttpOrigin($"bedrock-agentcore.{Region}.amazonaws.com"),
+            new HttpOrigin($"bedrock-agentcore.{Region}.amazonaws.com", new HttpOriginProps
+            {
+                // Default 30s is shorter than the agent's cold start
+                ReadTimeout = Duration.Seconds(60),
+            }),
             new AddBehaviorOptions
             {
                 AllowedMethods = AllowedMethods.ALLOW_ALL,

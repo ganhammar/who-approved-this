@@ -47,7 +47,10 @@ jobs:
               *) args+=("$arg") ;;
             esac
           done
-          exec zig cc -target aarch64-linux-gnu.2.34 "${args[@]}"
+          # nostart-stop-gc: lld would otherwise GC ILC's __modules section,
+          # which is referenced only via __start_/__stop_ boundary symbols
+          exec zig cc -target aarch64-linux-gnu.2.34 \
+            -Wl,-z,nostart-stop-gc -Wl,--undefined-version "${args[@]}"
           EOF
           chmod +x "$RUNNER_TEMP/zigcc"
 
