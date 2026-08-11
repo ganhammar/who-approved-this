@@ -30,16 +30,6 @@ jobs:
       - name: Native AOT prerequisites
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
-      # AgentCore Runtime requires OCI-format images; classic docker builds
-      # push Docker v2 manifests, which pass ECR and the control plane but
-      # fail microVM conversion at session start. The containerd image store
-      # makes docker build/push emit OCI manifests
-      - name: Enable containerd image store
-        run: |
-          sudo jq '. + {features: {"containerd-snapshotter": true}}' /etc/docker/daemon.json > /tmp/daemon.json \
-            || echo '{"features": {"containerd-snapshotter": true}}' > /tmp/daemon.json
-          sudo cp /tmp/daemon.json /etc/docker/daemon.json
-          sudo systemctl restart docker
 
       # The Lambda binary must link against glibc 2.34 (provided.al2023);
       # Ubuntu 24.04 ships 2.39, so the link step goes through zig cc with a
@@ -92,8 +82,22 @@ jobs:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: eu-north-1
 
+      # AgentCore Runtime requires a single OCI manifest; the buildx
+      # docker-container driver emits OCI, and --provenance=false keeps it a
+      # plain manifest instead of an attestation index
+      - name: Build and push agent image (OCI)
+        run: |
+          aws ecr create-repository --repository-name who-approved-this-agent 2>/dev/null || true
+          aws ecr get-login-password | docker login --username AWS --password-stdin \
+            "519157272275.dkr.ecr.eu-north-1.amazonaws.com"
+          docker buildx create --use
+          docker buildx build src/WhoApprovedThis.Agent \
+            --platform linux/arm64 --provenance=false --sbom=false \
+            --tag "519157272275.dkr.ecr.eu-north-1.amazonaws.com/who-approved-this-agent:$GITHUB_SHA" \
+            --push
+
       - name: CDK deploy
-        run: npx aws-cdk@latest deploy --require-approval never --outputs-file outputs.json
+        run: npx aws-cdk@latest deploy --require-approval never --outputs-file outputs.json -c agentTag=$GITHUB_SHA
 
       - name: Post-deploy wiring
         env:

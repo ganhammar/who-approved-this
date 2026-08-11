@@ -4,7 +4,7 @@ using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.Cognito;
 using Amazon.CDK.AWS.DynamoDB;
-using Amazon.CDK.AWS.Ecr.Assets;
+using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.S3;
@@ -217,11 +217,15 @@ public class WhoApprovedThisStack : Stack
             ],
         }));
 
+        // The agent image is built and pushed by CI with buildx (OCI single
+        // manifest; AgentCore rejects Docker v2 manifests at session start)
+        var agentRepo = Repository.FromRepositoryName(this, "AgentRepo", "who-approved-this-agent");
+        var agentTag = (string?)Node.TryGetContext("agentTag") ?? "latest";
+
         var runtime = new AgentRuntime(this, "AgentRuntime", new RuntimeProps
         {
             RuntimeName = "who_approved_this",
-            AgentRuntimeArtifact = AgentRuntimeArtifact.FromAsset("src/WhoApprovedThis.Agent",
-                new DockerImageAssetOptions { Platform = Platform_.LINUX_ARM64 }),
+            AgentRuntimeArtifact = AgentRuntimeArtifact.FromEcrRepository(agentRepo, agentTag),
             NetworkConfiguration = RuntimeNetworkConfiguration.UsingPublicNetwork(),
             AuthorizerConfiguration = RuntimeAuthorizerConfiguration.UsingCognito(
                 pool, [frontendClient]),
