@@ -218,6 +218,13 @@ public class WhoApprovedThisStack : Stack
                 $"arn:aws:bedrock-agentcore:{Region}:{Account}:token-vault/default*",
             ],
         }));
+        // AgentCore Identity keeps the provider's client secret in Secrets
+        // Manager and reads it with the caller's role during token exchange
+        agentRole.AddToPolicy(new PolicyStatement(new PolicyStatementProps
+        {
+            Actions = ["secretsmanager:GetSecretValue"],
+            Resources = [credentialProvider.ClientSecretArn!],
+        }));
 
         // The agent image is built and pushed by CI with buildx (OCI single
         // manifest; AgentCore rejects Docker v2 manifests at session start)
