@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>who-approved-this</title>
+  <style>
+    :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+    body { max-width: 40rem; margin: 0 auto; padding: 1rem; display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; }
+    header { display: flex; justify-content: space-between; align-items: baseline; }
+    h1 { font-size: 1.1rem; }
+    #chat { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: .5rem; padding: .5rem 0; }
+    .msg { padding: .5rem .75rem; border-radius: .75rem; max-width: 85%; white-space: pre-wrap; overflow-wrap: break-word; }
+    .you { align-self: flex-end; background: #2563eb; color: white; }
+    .agent { align-self: flex-start; background: color-mix(in srgb, currentColor 12%, transparent); }
+    form { display: flex; gap: .5rem; }
+    input { flex: 1; padding: .6rem .75rem; border-radius: .75rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); font: inherit; background: transparent; color: inherit; }
+    button { padding: .6rem 1rem; border-radius: .75rem; border: none; background: #2563eb; color: white; font: inherit; cursor: pointer; }
+    a { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>who-approved-this</h1>
+    <span id="who"></span>
+  </header>
+  <div id="chat"></div>
+  <form id="form">
+    <input id="prompt" placeholder="e.g. Submit a coffee expense for 45 SEK" autocomplete="off">
+    <button>Send</button>
+  </form>
+  <script src="config.js"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

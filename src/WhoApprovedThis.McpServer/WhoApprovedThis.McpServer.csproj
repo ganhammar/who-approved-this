@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Local-only: Homebrew OpenSSL for the macOS AOT link; Lambda builds target linux-arm64 -->
+  <ItemGroup Condition="$(RuntimeIdentifier.StartsWith('osx'))">
+    <LinkerArg Include="-L/opt/homebrew/opt/openssl@3/lib" />
+    <LinkerArg Include="-L/opt/homebrew/opt/brotli/lib" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="2.2.0" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.103" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.0" />
+  </ItemGroup>
+
+</Project>

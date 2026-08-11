@@ -1,0 +1,54 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency: deploy
+
+jobs:
+  deploy:
+    # arm64 runner: the Native AOT publishes below compile natively for the
+    # linux-arm64 Lambda and container targets, no cross-compilation, no QEMU
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Native AOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish MCP server (linux-arm64 AOT zip for Lambda)
+        run: |
+          dotnet publish src/WhoApprovedThis.McpServer -c Release -r linux-arm64
+          mkdir -p artifacts/mcp-server
+          cp src/WhoApprovedThis.McpServer/bin/Release/net10.0/linux-arm64/publish/WhoApprovedThis.McpServer \
+            artifacts/mcp-server/bootstrap
+
+      - name: Publish agent (linux-arm64 AOT binary for the container image)
+        run: dotnet publish src/WhoApprovedThis.Agent -c Release -r linux-arm64 -o src/WhoApprovedThis.Agent/publish
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: eu-north-1
+
+      - name: CDK deploy
+        run: npx aws-cdk@latest deploy --require-approval never --outputs-file outputs.json
+
+      - name: Post-deploy wiring
+        env:
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
+        run: ./scripts/postdeploy.sh outputs.json

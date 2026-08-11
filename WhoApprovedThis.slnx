@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/infra/">
+    <Project Path="infra/WhoApprovedThis.Infrastructure/WhoApprovedThis.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/WhoApprovedThis.Agent/WhoApprovedThis.Agent.csproj" />
+    <Project Path="src/WhoApprovedThis.McpServer/WhoApprovedThis.McpServer.csproj" />
+  </Folder>
+</Solution>

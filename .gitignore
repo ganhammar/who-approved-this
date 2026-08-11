@@ -1,0 +1,12 @@
+bin/
+obj/
+.DS_Store
+*.user
+.vs/
+.idea/
+cdk.out/
+.env
+.env.local
+frontend/config.js
+artifacts/
+publish/
