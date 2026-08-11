@@ -30,9 +30,23 @@ jobs:
       - name: Native AOT prerequisites
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
+      # The Lambda binary must link against glibc 2.34 (provided.al2023);
+      # Ubuntu 24.04 ships 2.39, so the link step goes through zig cc with a
+      # pinned glibc target instead of the system toolchain
+      - name: Install zig as the Lambda link toolchain
+        run: |
+          curl -sSL https://ziglang.org/download/0.14.0/zig-linux-aarch64-0.14.0.tar.xz | tar -xJ -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/zig-linux-aarch64-0.14.0" >> "$GITHUB_PATH"
+          cat > "$RUNNER_TEMP/zigcc" <<'EOF'
+          #!/usr/bin/env bash
+          exec zig cc -target aarch64-linux-gnu.2.34 "$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/zigcc"
+
       - name: Publish MCP server and agent (linux-arm64 AOT, in parallel)
         run: |
-          dotnet publish src/WhoApprovedThis.McpServer -c Release -r linux-arm64 & mcp=$!
+          dotnet publish src/WhoApprovedThis.McpServer -c Release -r linux-arm64 \
+            -p:CppCompilerAndLinker="$RUNNER_TEMP/zigcc" & mcp=$!
           dotnet publish src/WhoApprovedThis.Agent -c Release -r linux-arm64 \
             -o src/WhoApprovedThis.Agent/publish & agent=$!
           status=0
@@ -43,9 +57,13 @@ jobs:
             artifacts/mcp-server/bootstrap
           exit $status
 
-      # provided.al2023 ships glibc 2.34; the binary must not require newer
-      - name: Inspect bootstrap glibc requirements
-        run: objdump -T artifacts/mcp-server/bootstrap | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -3
+      # provided.al2023 ships glibc 2.34; fail the build if the binary
+      # requires anything newer
+      - name: Verify bootstrap glibc requirements
+        run: |
+          max=$(objdump -T artifacts/mcp-server/bootstrap | grep -o 'GLIBC_[0-9.]*' | sort -V | tail -1)
+          echo "Highest required: $max (runtime provides GLIBC_2.34)"
+          [ "$(printf 'GLIBC_2.34\n%s\n' "$max" | sort -V | tail -1)" = "GLIBC_2.34" ]
 
       - uses: aws-actions/configure-aws-credentials@v6
         with:

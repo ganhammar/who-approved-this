@@ -69,28 +69,41 @@ function append(role, text) {
   }
   $("chat").appendChild(div);
   div.scrollIntoView();
+  return div;
 }
 
 async function send(prompt) {
   append("you", prompt);
-  const response = await fetch(
-    `/runtimes/${encodeURIComponent(cfg.agentArn)}/invocations?qualifier=DEFAULT`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${sessionStorage.accessToken}`,
-        "Content-Type": "application/json",
-        "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id": sessionId,
-      },
-      body: JSON.stringify({ prompt }),
-    });
-  if (response.status === 401 || response.status === 403) {
-    sessionStorage.removeItem("accessToken");
-    append("agent", "Your session has expired. Reloading to log in again...");
-    setTimeout(login, 1500);
-    return;
+  const pending = append("agent", "Thinking (cold starts can take a while)...");
+  try {
+    const response = await fetch(
+      `/runtimes/${encodeURIComponent(cfg.agentArn)}/invocations?qualifier=DEFAULT`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionStorage.accessToken}`,
+          "Content-Type": "application/json",
+          "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id": sessionId,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+    if (response.status === 401 || response.status === 403) {
+      sessionStorage.removeItem("accessToken");
+      append("agent", "Your session has expired. Reloading to log in again...");
+      setTimeout(login, 1500);
+      return;
+    }
+    if (!response.ok) {
+      const body = await response.text();
+      append("agent", `The agent call failed (HTTP ${response.status}): ${body.slice(0, 300)}`);
+      return;
+    }
+    const data = await response.json();
+    append("agent", data.message ?? JSON.stringify(data));
+  } catch (error) {
+    append("agent", `The agent call failed: ${error}`);
+  } finally {
+    pending.remove();
   }
-  const data = await response.json();
-  append("agent", data.message ?? JSON.stringify(data));
 }
 
 // --- Wire-up ---
