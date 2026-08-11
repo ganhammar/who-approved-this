@@ -43,6 +43,10 @@ jobs:
             artifacts/mcp-server/bootstrap
           exit $status
 
+      # provided.al2023 ships glibc 2.34; the binary must not require newer
+      - name: Inspect bootstrap glibc requirements
+        run: objdump -T artifacts/mcp-server/bootstrap | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -3
+
       - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}

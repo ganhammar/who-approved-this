@@ -237,7 +237,7 @@ public class WhoApprovedThisStack : Stack
         new CfnOutput(this, "AgentClientId", new CfnOutputProps { Value = agentClient.UserPoolClientId });
         new CfnOutput(this, "McpServerUrl", new CfnOutputProps { Value = mcpUrl.Url });
         new CfnOutput(this, "AgentRuntimeArn", new CfnOutputProps { Value = runtime.AgentRuntimeArn });
-        new CfnOutput(this, "ProviderCallbackUrl", new CfnOutputProps { Value = credentialProvider.CallbackUrl });
+        new CfnOutput(this, "ProviderCallbackUrl", new CfnOutputProps { Value = credentialProvider.CallbackUrl! });
         new CfnOutput(this, "SiteBucket", new CfnOutputProps { Value = site.BucketName });
         new CfnOutput(this, "SiteUrl", new CfnOutputProps { Value = $"https://{distribution.DistributionDomainName}/" });
         new CfnOutput(this, "DistributionId", new CfnOutputProps { Value = distribution.DistributionId });
