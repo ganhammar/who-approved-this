@@ -30,6 +30,17 @@ jobs:
       - name: Native AOT prerequisites
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
+      # AgentCore Runtime requires OCI-format images; classic docker builds
+      # push Docker v2 manifests, which pass ECR and the control plane but
+      # fail microVM conversion at session start. The containerd image store
+      # makes docker build/push emit OCI manifests
+      - name: Enable containerd image store
+        run: |
+          sudo jq '. + {features: {"containerd-snapshotter": true}}' /etc/docker/daemon.json > /tmp/daemon.json \
+            || echo '{"features": {"containerd-snapshotter": true}}' > /tmp/daemon.json
+          sudo cp /tmp/daemon.json /etc/docker/daemon.json
+          sudo systemctl restart docker
+
       # The Lambda binary must link against glibc 2.34 (provided.al2023);
       # Ubuntu 24.04 ships 2.39, so the link step goes through zig cc with a
       # pinned glibc target instead of the system toolchain
