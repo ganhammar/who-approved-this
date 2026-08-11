@@ -120,6 +120,8 @@ public class WhoApprovedThisStack : Stack
         // token never carries API permissions - that is the point
         var frontendClient = pool.AddClient("Frontend", new UserPoolClientOptions
         {
+            // AdminUserPassword lets test scripts mint tokens without a browser
+            AuthFlows = new AuthFlow { UserSrp = true, AdminUserPassword = true },
             OAuth = new OAuthSettings
             {
                 Flows = new OAuthFlows { AuthorizationCodeGrant = true },
