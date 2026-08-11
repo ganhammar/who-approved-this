@@ -18,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.BedrockAgentCore" Version="4.0.103" />
     <PackageReference Include="AWSSDK.BedrockRuntime" Version="4.0.101" />
-    <PackageReference Include="ModelContextProtocol.Core" Version="1.4.0" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

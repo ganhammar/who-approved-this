@@ -17,15 +17,15 @@ jobs:
     # linux-arm64 Lambda and container targets, no cross-compilation, no QEMU
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Native AOT prerequisites
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
@@ -40,7 +40,7 @@ jobs:
       - name: Publish agent (linux-arm64 AOT binary for the container image)
         run: dotnet publish src/WhoApprovedThis.Agent -c Release -r linux-arm64 -o src/WhoApprovedThis.Agent/publish
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: eu-north-1
