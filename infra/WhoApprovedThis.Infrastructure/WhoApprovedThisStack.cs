@@ -219,11 +219,15 @@ public class WhoApprovedThisStack : Stack
             ],
         }));
         // AgentCore Identity keeps the provider's client secret in Secrets
-        // Manager and reads it with the caller's role during token exchange
+        // Manager (the bang-scoped service-managed namespace) and reads it
+        // with the caller's role during token exchange
         agentRole.AddToPolicy(new PolicyStatement(new PolicyStatementProps
         {
             Actions = ["secretsmanager:GetSecretValue"],
-            Resources = [credentialProvider.ClientSecretArn!],
+            Resources =
+            [
+                $"arn:aws:secretsmanager:{Region}:{Account}:secret:bedrock-agentcore-identity!default/oauth2/cognito-expenses-*",
+            ],
         }));
 
         // The agent image is built and pushed by CI with buildx (OCI single
