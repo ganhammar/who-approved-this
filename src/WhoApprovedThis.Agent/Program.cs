@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using WhoApprovedThis.Agent;
 
@@ -14,11 +13,10 @@ var app = builder.Build();
 
 app.MapGet("/ping", () => new PingResponse("Healthy"));
 
-app.MapPost("/invocations", async (HttpRequest request, TokenBroker broker, AgentLoop agent) =>
+app.MapPost("/invocations", async (
+    InvocationRequest payload, HttpRequest request, TokenBroker broker, AgentLoop agent) =>
 {
-    var payload = await JsonSerializer.DeserializeAsync(
-        request.Body, AgentJsonContext.Default.InvocationRequest);
-    if (payload?.Prompt is not { Length: > 0 } prompt)
+    if (payload.Prompt is not { Length: > 0 } prompt)
         return Results.BadRequest();
 
     // The runtime has already validated the caller's JWT and delivered a
