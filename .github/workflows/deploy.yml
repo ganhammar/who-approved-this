@@ -40,17 +40,17 @@ jobs:
           cat > "$RUNNER_TEMP/zigcc" <<'EOF'
           #!/usr/bin/env bash
           # zig links through its own lld and rejects a few flags ILC passes
+          # --gc-sections is dropped because lld would GC ILC's __modules
+          # section, which is referenced only via linker-synthesized
+          # __start_/__stop_ boundary symbols; the binary gets a bit larger
           args=()
           for arg in "$@"; do
             case "$arg" in
-              -pie|-Wl,-pie|-fuse-ld=*|-gz=*) ;;
+              -pie|-Wl,-pie|-fuse-ld=*|-gz=*|-Wl,--gc-sections) ;;
               *) args+=("$arg") ;;
             esac
           done
-          # nostart-stop-gc: lld would otherwise GC ILC's __modules section,
-          # which is referenced only via __start_/__stop_ boundary symbols
-          exec zig cc -target aarch64-linux-gnu.2.34 \
-            -Wl,-z,nostart-stop-gc -Wl,--undefined-version "${args[@]}"
+          exec zig cc -target aarch64-linux-gnu.2.34 -Wl,--undefined-version "${args[@]}"
           EOF
           chmod +x "$RUNNER_TEMP/zigcc"
 
