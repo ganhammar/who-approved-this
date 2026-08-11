@@ -35,7 +35,15 @@ aws cognito-idp update-user-pool-client \
   --supported-identity-providers COGNITO > /dev/null
 echo "Agent client callback set to $PROVIDER_CALLBACK"
 
-# 2. Demo users
+# 2. The runtime's workload identity must allowlist the return URL used in
+# the 3LO consent flow (session binding)
+WORKLOAD_IDENTITY="${RUNTIME_ARN##*/}"
+aws bedrock-agentcore-control update-workload-identity \
+  --name "$WORKLOAD_IDENTITY" \
+  --allowed-resource-oauth2-return-urls "$SITE_URL" "http://localhost:4000/" > /dev/null
+echo "Return URLs allowlisted on $WORKLOAD_IDENTITY"
+
+# 3. Demo users
 for user in alice bob; do
   aws cognito-idp admin-set-user-password \
     --user-pool-id "$POOL_ID" --username "$user" \
@@ -43,7 +51,7 @@ for user in alice bob; do
 done
 echo "Passwords set for alice and bob"
 
-# 3. Frontend
+# 4. Frontend
 cat > frontend/config.js <<EOF
 window.CONFIG = {
   hostedUiBase: "$HOSTED_UI_BASE",
