@@ -31,7 +31,7 @@ aws cognito-idp update-user-pool-client \
   --callback-urls "$PROVIDER_CALLBACK" \
   --allowed-o-auth-flows code \
   --allowed-o-auth-flows-user-pool-client \
-  --allowed-o-auth-scopes expenses/read expenses/write expenses/approve \
+  --allowed-o-auth-scopes openid expenses/read expenses/write expenses/approve \
   --supported-identity-providers COGNITO > /dev/null
 echo "Agent client callback set to $PROVIDER_CALLBACK"
 
