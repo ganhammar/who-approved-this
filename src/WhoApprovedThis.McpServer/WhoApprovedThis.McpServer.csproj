@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Amazon.Lambda.AspNetCoreServer.Hosting" Version="2.2.0" />
+    <PackageReference Include="AWSSDK.BedrockAgentCore" Version="4.0.104" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="4.0.103" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />

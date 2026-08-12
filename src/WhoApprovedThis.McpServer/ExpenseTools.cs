@@ -10,8 +10,11 @@ public record Expense(
     string Id, string SubmittedBy, string Description,
     decimal Amount, string Status, string? ApprovedBy);
 
+public record CompleteAuthRequest(string SessionId);
+
 [JsonSerializable(typeof(Expense))]
 [JsonSerializable(typeof(List<Expense>))]
+[JsonSerializable(typeof(CompleteAuthRequest))]
 public partial class AppJsonContext : JsonSerializerContext;
 
 [McpServerToolType]

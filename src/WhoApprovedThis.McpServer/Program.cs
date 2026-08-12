@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Amazon.BedrockAgentCore;
+using Amazon.BedrockAgentCore.Model;
 using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Serialization.SystemTextJson;
@@ -56,7 +58,10 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IAmazonDynamoDB>(new AmazonDynamoDBClient());
+builder.Services.AddSingleton<IAmazonBedrockAgentCore>(new AmazonBedrockAgentCoreClient());
 builder.Services.AddSingleton<ExpenseStore>();
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonContext.Default));
 
 var jsonOptions = new JsonSerializerOptions(McpJsonUtilities.DefaultOptions);
 jsonOptions.TypeInfoResolverChain.Add(AppJsonContext.Default);
@@ -71,6 +76,23 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapMcp().RequireAuthorization();
+
+// Session binding: consent alone does not store a token. The browser lands
+// back on the app with a session_id, and the app must prove that the user
+// who consented is the user logged in here, by presenting that user's own
+// token. Only then does AgentCore Identity fetch and vault the token
+app.MapPost("/oauth/complete", async (
+    CompleteAuthRequest body, HttpContext context, IAmazonBedrockAgentCore identity) =>
+{
+    var userToken = context.Request.Headers.Authorization
+        .ToString()["Bearer ".Length..];
+    await identity.CompleteResourceTokenAuthAsync(new CompleteResourceTokenAuthRequest
+    {
+        SessionUri = body.SessionId,
+        UserIdentifier = new UserIdentifier { UserToken = userToken },
+    });
+    return Results.Ok();
+}).RequireAuthorization();
 
 app.Run();
 

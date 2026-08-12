@@ -194,10 +194,33 @@ public class WhoApprovedThisStack : Stack
         });
         table.GrantReadWriteData(mcpServer);
 
+        // The MCP server also completes the 3LO session binding on behalf of
+        // the logged-in user (it already authenticates the same tokens)
+        mcpServer.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps
+        {
+            Actions = ["bedrock-agentcore:CompleteResourceTokenAuth"],
+            Resources =
+            [
+                $"arn:aws:bedrock-agentcore:{Region}:{Account}:workload-identity-directory/default*",
+                $"arn:aws:bedrock-agentcore:{Region}:{Account}:token-vault/default*",
+            ],
+        }));
+
         var mcpUrl = mcpServer.AddFunctionUrl(new FunctionUrlOptions
         {
             AuthType = FunctionUrlAuthType.NONE,
         });
+
+        // Same-origin route to the session-binding endpoint
+        distribution.AddBehavior("/oauth/*",
+            new FunctionUrlOrigin(mcpUrl),
+            new AddBehaviorOptions
+            {
+                AllowedMethods = AllowedMethods.ALLOW_ALL,
+                CachePolicy = CachePolicy.CACHING_DISABLED,
+                OriginRequestPolicy = OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+                ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            });
 
         // --- The agent on AgentCore Runtime, JWT inbound auth ---
         var agentRole = new Role(this, "AgentRole", new RoleProps

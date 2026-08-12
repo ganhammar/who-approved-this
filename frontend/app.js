@@ -111,9 +111,27 @@ async function send(prompt) {
 
 // --- Wire-up ---
 
-const code = new URLSearchParams(location.search).get("code");
-if (code) await exchangeCode(code);
+const params = new URLSearchParams(location.search);
+if (params.get("code")) await exchangeCode(params.get("code"));
 if (!sessionStorage.accessToken) await login();
+
+// Landing back from a consent redirect: prove to AgentCore Identity that
+// the user who consented is the user logged in here, so it stores the token
+const bindingSession = params.get("session_id");
+if (bindingSession) {
+  const response = await fetch("/oauth/complete", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${sessionStorage.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ sessionId: bindingSession }),
+  });
+  history.replaceState(null, "", location.pathname);
+  append("agent", response.ok
+    ? "Access granted! Now, what did you want me to do?"
+    : `Completing the grant failed (HTTP ${response.status}).`);
+}
 
 $("who").textContent = claims()?.username ?? "";
 append("agent",
