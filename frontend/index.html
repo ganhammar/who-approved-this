@@ -17,8 +17,8 @@
     input { flex: 1; padding: .6rem .75rem; border-radius: .75rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); font: inherit; background: transparent; color: inherit; }
     button { padding: .6rem 1rem; border-radius: .75rem; border: none; background: #2563eb; color: white; font: inherit; cursor: pointer; }
     a { color: #2563eb; }
+    [hidden] { display: none !important; }
     #splash { flex: 1; display: grid; place-items: center; opacity: .6; }
-    #splash[hidden] { display: none; }
     .pending span { display: inline-block; width: .5em; height: .5em; margin-right: .25em; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
     .pending span:nth-child(2) { animation-delay: .2s; }
     .pending span:nth-child(3) { animation-delay: .4s; }
@@ -26,7 +26,7 @@
   </style>
 </head>
 <body>
-  <header>
+  <header id="header" hidden>
     <h1>who-approved-this</h1>
     <span id="who"></span>
   </header>

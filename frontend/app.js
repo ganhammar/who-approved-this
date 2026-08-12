@@ -137,6 +137,7 @@ if (params.get("code")) await exchangeCode(params.get("code"));
 if (!sessionStorage.accessToken) await login();
 
 $("splash").hidden = true;
+$("header").hidden = false;
 $("chat").hidden = false;
 $("form").hidden = false;
 $("who").textContent = claims()?.username ?? "";
