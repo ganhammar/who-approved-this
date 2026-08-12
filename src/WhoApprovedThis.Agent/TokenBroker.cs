@@ -12,8 +12,10 @@ public class TokenBroker
 {
     static readonly string Provider =
         Environment.GetEnvironmentVariable("CREDENTIAL_PROVIDER") ?? "cognito-expenses";
+    // openid is required for Cognito to include identity claims, such as
+    // cognito:groups, in the access token
     static readonly List<string> Scopes =
-        ["expenses/read", "expenses/write", "expenses/approve"];
+        ["openid", "expenses/read", "expenses/write", "expenses/approve"];
     // Where the user's browser lands after granting consent (session binding)
     static readonly string ReturnUrl =
         Environment.GetEnvironmentVariable("APP_URL") ?? "http://localhost:4000/";

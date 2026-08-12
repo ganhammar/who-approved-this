@@ -149,6 +149,7 @@ public class WhoApprovedThisStack : Stack
                 Flows = new OAuthFlows { AuthorizationCodeGrant = true },
                 Scopes =
                 [
+                    OAuthScope.OPENID,
                     OAuthScope.ResourceServer(resourceServer, read),
                     OAuthScope.ResourceServer(resourceServer, write),
                     OAuthScope.ResourceServer(resourceServer, approve),
