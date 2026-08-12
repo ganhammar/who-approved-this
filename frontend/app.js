@@ -60,11 +60,11 @@ function append(role, text) {
   // agent's output is untrusted
   for (const part of text.split(/(https:\/\/\S+)/)) {
     if (part.startsWith("https://")) {
+      // Consent links must navigate this tab: the granted token is bound to
+      // the runtime session, and the session id lives in sessionStorage
       const a = document.createElement("a");
       a.href = part;
       a.textContent = part;
-      a.target = "_blank";
-      a.rel = "noopener";
       div.appendChild(a);
     } else if (part) {
       div.appendChild(document.createTextNode(part));
