@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Amazon.BedrockAgentCore;
 using Amazon.BedrockAgentCore.Model;
 
@@ -25,16 +26,35 @@ public class TokenBroker
     public async Task<(string? UserToken, string? AuthorizationUrl)> GetUserToken(
         string workloadToken)
     {
-        var response = await _client.GetResourceOauth2TokenAsync(
-            new GetResourceOauth2TokenRequest
-            {
-                WorkloadIdentityToken = workloadToken,
-                ResourceCredentialProviderName = Provider,
-                Scopes = Scopes,
-                Oauth2Flow = Oauth2FlowType.USER_FEDERATION,
-                ResourceOauth2ReturnUrl = ReturnUrl,
-            });
+        var response = await Request(workloadToken, force: false);
+
+        // The vault returns the stored grant even if the requested scopes
+        // have widened since the user consented; a fresh consent is needed
+        if (response.AccessToken is { } token && !CoversScopes(token))
+            response = await Request(workloadToken, force: true);
 
         return (response.AccessToken, response.AuthorizationUrl);
+    }
+
+    Task<GetResourceOauth2TokenResponse> Request(string workloadToken, bool force) =>
+        _client.GetResourceOauth2TokenAsync(new GetResourceOauth2TokenRequest
+        {
+            WorkloadIdentityToken = workloadToken,
+            ResourceCredentialProviderName = Provider,
+            Scopes = Scopes,
+            Oauth2Flow = Oauth2FlowType.USER_FEDERATION,
+            ResourceOauth2ReturnUrl = ReturnUrl,
+            ForceAuthentication = force,
+        });
+
+    static bool CoversScopes(string token)
+    {
+        var payload = token.Split('.')[1].Replace('-', '+').Replace('_', '/');
+        using var claims = JsonDocument.Parse(
+            Convert.FromBase64String(payload.PadRight((payload.Length + 3) / 4 * 4, '=')));
+        var granted = claims.RootElement.TryGetProperty("scope", out var scope)
+            ? scope.GetString()!.Split(' ')
+            : [];
+        return Scopes.Where(s => s != "openid").All(granted.Contains);
     }
 }
