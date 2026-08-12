@@ -205,6 +205,16 @@ public class WhoApprovedThisStack : Stack
                 $"arn:aws:bedrock-agentcore:{Region}:{Account}:token-vault/default*",
             ],
         }));
+        // Completing the binding fetches the provider token with the
+        // caller's permissions, which reads the provider's client secret
+        mcpServer.AddToRolePolicy(new PolicyStatement(new PolicyStatementProps
+        {
+            Actions = ["secretsmanager:GetSecretValue"],
+            Resources =
+            [
+                $"arn:aws:secretsmanager:{Region}:{Account}:secret:bedrock-agentcore-identity!default/oauth2/cognito-expenses-*",
+            ],
+        }));
 
         var mcpUrl = mcpServer.AddFunctionUrl(new FunctionUrlOptions
         {
