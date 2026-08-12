@@ -55,6 +55,6 @@ public class TokenBroker
         var granted = claims.RootElement.TryGetProperty("scope", out var scope)
             ? scope.GetString()!.Split(' ')
             : [];
-        return Scopes.Where(s => s != "openid").All(granted.Contains);
+        return Scopes.All(granted.Contains);
     }
 }
