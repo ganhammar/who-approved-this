@@ -26,9 +26,6 @@ public class ExpenseTools(ExpenseStore store, IHttpContextAccessor http)
     [Description("List expenses. Employees see their own, managers see all.")]
     public async Task<List<Expense>> ListExpenses()
     {
-        // TEMP: claim capture for debugging and the post, remove after
-        Console.WriteLine("claims: " + string.Join(" | ",
-            User.Claims.Select(c => $"{c.Type}={c.Value}")));
         RequireScope("expenses/read");
         var expenses = await store.All();
         return IsManager()
