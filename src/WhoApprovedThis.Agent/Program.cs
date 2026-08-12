@@ -24,12 +24,9 @@ app.MapPost("/invocations", async (
     var workloadToken = request.Headers["WorkloadAccessToken"].ToString();
 
     var (userToken, authorizationUrl) = await broker.GetUserToken(workloadToken);
-    if (authorizationUrl is not null)
-        return Results.Ok(new InvocationResponse(
-            "Before I can act on your behalf, you need to grant me access: " +
-            authorizationUrl));
-
-    var answer = await agent.Run(prompt, userToken!);
+    var answer = authorizationUrl is not null
+        ? await agent.RunWithoutAccess(prompt, authorizationUrl)
+        : await agent.Run(prompt, userToken!);
     return Results.Ok(new InvocationResponse(answer));
 });
 

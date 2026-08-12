@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Amazon.BedrockRuntime;
 using Amazon.BedrockRuntime.Model;
 using ModelContextProtocol.Client;
@@ -5,7 +6,7 @@ using McpTextBlock = ModelContextProtocol.Protocol.TextContentBlock;
 
 namespace WhoApprovedThis.Agent;
 
-public class AgentLoop
+public partial class AgentLoop
 {
     static readonly string ModelId =
         Environment.GetEnvironmentVariable("MODEL_ID") ?? "eu.amazon.nova-pro-v1:0";
@@ -19,6 +20,27 @@ public class AgentLoop
         "say so plainly. Keep answers short.";
 
     readonly AmazonBedrockRuntimeClient _bedrock = new();
+
+    // Without a delegated token the agent still answers; the model is told
+    // to hand out the consent link only when the request actually needs it
+    public async Task<string> RunWithoutAccess(string prompt, string authorizationUrl)
+    {
+        var response = await _bedrock.ConverseAsync(new ConverseRequest
+        {
+            ModelId = ModelId,
+            System = [new() { Text =
+                SystemPrompt +
+                " You currently have NO access to the user's expenses. If the " +
+                "request requires expense data or actions, ask the user to " +
+                "grant you access first and include this link exactly as-is: " +
+                authorizationUrl +
+                " For everything else, answer normally and do not mention " +
+                "access or the link." }],
+            Messages =
+                [new() { Role = ConversationRole.User, Content = [new() { Text = prompt }] }],
+        });
+        return Text(response);
+    }
 
     public async Task<string> Run(string prompt, string userToken)
     {
@@ -66,9 +88,7 @@ public class AgentLoop
 
             messages.Add(response.Output.Message);
             if (response.StopReason != StopReason.Tool_use)
-                return string.Concat(response.Output.Message.Content
-                    .Where(block => block.Text is not null)
-                    .Select(block => block.Text));
+                return Text(response);
 
             var results = new List<ContentBlock>();
             foreach (var use in response.Output.Message.Content
@@ -99,4 +119,15 @@ public class AgentLoop
 
         return "I could not finish within the allowed number of steps.";
     }
+
+    static string Text(ConverseResponse response) =>
+        ThinkingBlocks().Replace(
+            string.Concat(response.Output.Message.Content
+                .Where(block => block.Text is not null)
+                .Select(block => block.Text)),
+            "").Trim();
+
+    // Amazon Nova models interleave <thinking> blocks into their text output
+    [GeneratedRegex(@"<thinking>.*?</thinking>\s*", RegexOptions.Singleline)]
+    private static partial Regex ThinkingBlocks();
 }
