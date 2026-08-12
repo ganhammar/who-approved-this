@@ -16,6 +16,8 @@
     form { display: flex; gap: .5rem; }
     input { flex: 1; padding: .6rem .75rem; border-radius: .75rem; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); font: inherit; background: transparent; color: inherit; }
     button { padding: .6rem 1rem; border-radius: .75rem; border: none; background: #2563eb; color: white; font: inherit; cursor: pointer; }
+    #user { display: flex; gap: .75rem; align-items: center; }
+    .ghost { background: transparent; color: inherit; border: 1px solid color-mix(in srgb, currentColor 30%, transparent); padding: .3rem .7rem; opacity: .7; }
     a { color: #2563eb; }
     [hidden] { display: none !important; }
     #splash { flex: 1; display: grid; place-items: center; opacity: .6; }
@@ -28,7 +30,10 @@
 <body>
   <header id="header" hidden>
     <h1>who-approved-this</h1>
-    <span id="who"></span>
+    <span id="user">
+      <span id="who"></span>
+      <button id="logout" class="ghost">Log out</button>
+    </span>
   </header>
   <div id="splash">Signing you in&hellip;</div>
   <div id="chat" hidden></div>

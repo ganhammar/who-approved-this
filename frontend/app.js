@@ -170,6 +170,16 @@ if (bindingSession) {
   }
 }
 
+$("logout").addEventListener("click", () => {
+  // Clearing local state is not enough: the Hosted UI session cookie would
+  // silently sign the same user back in
+  sessionStorage.clear();
+  location.href = `${cfg.hostedUiBase}/logout?` + new URLSearchParams({
+    client_id: cfg.clientId,
+    logout_uri: cfg.redirectUri,
+  });
+});
+
 $("form").addEventListener("submit", (event) => {
   event.preventDefault();
   const prompt = $("prompt").value.trim();

@@ -129,6 +129,11 @@ public class WhoApprovedThisStack : Stack
                     $"https://{distribution.DistributionDomainName}/",
                     "http://localhost:4000/",
                 ],
+                LogoutUrls =
+                [
+                    $"https://{distribution.DistributionDomainName}/",
+                    "http://localhost:4000/",
+                ],
             },
         });
 
