@@ -60,6 +60,6 @@ window.CONFIG = {
   redirectUri: "$SITE_URL",
 };
 EOF
-aws s3 sync frontend "s3://$SITE_BUCKET" --delete
+aws s3 sync frontend "s3://$SITE_BUCKET" --delete --cache-control "max-age=60"
 aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*" > /dev/null
 echo "Site published: $SITE_URL"
