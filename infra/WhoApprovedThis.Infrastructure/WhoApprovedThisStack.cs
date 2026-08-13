@@ -117,7 +117,7 @@ public class WhoApprovedThisStack : Stack
             });
 
         // The human's client: login only, no expense scopes. The user's own
-        // token never carries API permissions - that is the point
+        // token never carries API permissions
         var frontendClient = pool.AddClient("Frontend", new UserPoolClientOptions
         {
             OAuth = new OAuthSettings

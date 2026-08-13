@@ -44,8 +44,8 @@ public partial class AgentLoop
 
     public async Task<string> Run(string prompt, string userToken)
     {
-        // The MCP connection carries the user-scoped token: every tool call
-        // downstream executes as the caller, not as the agent
+        // The MCP connection carries the user-scoped token, so every tool
+        // call downstream carries the caller's identity
         await using var mcp = await McpClient.CreateAsync(new HttpClientTransport(new()
         {
             Endpoint = new Uri(McpUrl),

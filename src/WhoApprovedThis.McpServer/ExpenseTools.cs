@@ -67,8 +67,8 @@ public class ExpenseTools(ExpenseStore store, IHttpContextAccessor http)
     }
 
     // Scope says what this client was allowed to ask for on the user's
-    // behalf; the group claim says what the user actually is. Approving
-    // requires both.
+    // behalf; the group claim says what the user is. Approving requires
+    // both.
     void RequireScope(string scope)
     {
         var granted = User.FindFirstValue("scope")?.Split(' ') ?? [];

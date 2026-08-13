@@ -2,7 +2,7 @@
 
 Companion repository for the blog post on delegated authorization for AI agents with Amazon Bedrock AgentCore Identity, in C#.
 
-An expense approval assistant where the agent acts *on behalf of* the signed-in user, never as itself: the same prompt gives different outcomes for an employee and a manager, and the audit trail names the human, not the agent.
+An expense approval assistant where the agent acts on behalf of the signed-in user. The same prompt gives different outcomes for an employee and a manager, and the audit trail names the human.
 
 ## Structure
 
